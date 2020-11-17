@@ -21,143 +21,152 @@ export default {
   },
   data() {
     return {
-      taskList: []
+      taskList: [],
+	  bpmnViewer: {},
     };
   },
-  async mounted() {
+   watch: {
+    xmlData(val) {
+      this.openDiagram(val)
+    }
+  },
+  mounted() {
     this.taskList = this.taskData
-    let bpmnViewer = new BpmnViewer({
+    this.bpmnViewer = new BpmnViewer({
       container: this.$refs["canvas"],
       bpmnRenderer: {
           // defaultFillColor: "rgba(30,30,30,1)",
           // defaultStrokeColor: "red"
       }
     });
-    // bpmnViewer.on('import.parse.start', (re) => {
+    // this.bpmnViewer.on('import.parse.start', (re) => {
     //   console.log(11111, re)
     // })
-    // console.log('bpmnViewer', bpmnViewer)
-    try {
-      // let xmlData = this.xmlData.replace('xmlns:camunda', 'xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda')
-      // console.log('xmlData', xmlData)
-      const { warning } = await bpmnViewer.importXML(this.xmlData);
-      // console.log('rendered', warning);
-      let canvas = bpmnViewer.get('canvas');
-      // canvas.zoom('fit-viewport')
-      if (this.taskList && this.taskList.length > 0) {
-        // let overlays = bpmnViewer.get('overlays');
-        // let overlayHtml = document.createElement('div');
-        // overlays.add('StartEvent_1', {
-        //   position: {
-        //     top: 0,
-        //     right: 0,
-        //   },
-        //   html: overlayHtml
-        // });
-        // 判断开始节点或结束节点完成
-        // const modeling = bpmnViewer.get('modeling')
-        // modeling.setColor({ fill: 'red', stroke: 'red' })
-        // console.log('bpmnViewer', bpmnViewer)
-        // console.log('canvas', canvas)
-        // bpmnViewer.getDefinitions().$attrs['xmlns:bioc'] = 'http://bpmn.io/schema/bpmn/biocolor/1.0'
-        // bpmnViewer.getDefinitions().rootElements[0].di.planeElement.forEach(n => {
-        //   // console.log(n)
-        //   n['bioc:stroke'] = 'red'
-        //   n['bioc:fill'] = "#E1BEE7"
-        //   // console.log(n)
-        // })
-        // bpmnViewer.getDefinitions().diagrams[0].plane.planeElement.forEach(n => {
-        //   // console.log(n)
-        //   n['bioc:stroke'] = 'red'
-        //   n['bioc:fill'] = "#E1BEE7"
-        //   n.di = {'bioc:stroke': 'red'}
-        //   // console.log(n)
-        // })
-        // console.log('bpmnViewer2', bpmnViewer.getDefinitions())
-        // const result = await bpmnViewer._moddle.toXML(bpmnViewer.getDefinitions(), {});
-        // console.log(result)
-        // result.xml = result.xml.replace(/\n/g, '');
-        // result.xml = result.xml.replace('xmlns:camunda', 'xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda')
-        // result.xml = result.xml.replace('bpmnElement="EndEvent_1xgys24"', 'bpmnElement="EndEvent_1xgys24" bioc:stroke="#3399aa"')
-        // let bpmnViewer1 = new BpmnViewer({
-        //   container: this.$refs["canvas1"],
-        //   bpmnRenderer: {
-        //       // defaultFillColor: "rgba(30,30,30,1)",
-        //       // defaultStrokeColor: "red"
-        //   }
-        // });
-        // const { warning } = await bpmnViewer1.importXML(result.xml);
-        // console.log('bpmnViewer', bpmnViewer1)
-		const overlays = bpmnViewer.get('overlays');
-		let overlayHtml = document.createElement('div');
-		overlayHtml.classList.add('node-statistic');
-		//overlayHtml.style.width = '24px';
-		//overlayHtml.style.height = '24px';
-		overlayHtml.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24"><g fill="none" fill-rule="evenodd">'+
-    '<circle cx="12" cy="12" r="12" fill="#10D070"></circle>'+
-      '<path fill="#FFF" d="M12,19 C8.13400675,19 5,15.8659932 5,12 C5,8.13400675 8.13400675,5 12,5 C15.8659932,5 19,8.13400675 19,12 C19,15.8659932 15.8659932,19 12,19 Z M12,17 C14.7614237,17 17,14.7614237 17,12 C17,9.23857625 14.7614237,7 12,7 C9.23857625,7 7,9.23857625 7,12 C7,14.7614237 9.23857625,17 12,17 Z M12,16 C9.790861,16 8,14.209139 8,12 C8,9.790861 9.790861,8 12,8 C14.209139,8 16,9.790861 16,12 C16,14.209139 14.209139,16 12,16 Z"></path>'+
-      '</g></svg><span style="box-sizing: border-box;padding: 0px 11px 0px 0px;width:24px">2</span>';
-
-        overlays.add('UserTask_06zjapk', {
-            position: {bottom: 12, left: 0},
-            html: overlayHtml
-        });
-		console.log('bpmnViewer overlays', overlays)
-        bpmnViewer.getDefinitions().rootElements[0].flowElements.forEach(n => {
-		canvas.addMarker(n.id, 'op-selectable');
-		
-          if (n.$type === 'bpmn:UserTask') {
-              let completeTask = this.taskList.find(m => m.key === n.id)
-              let todoTask = this.taskList.find(m => !m.completed)
-              let endTask = this.taskList[this.taskList.length - 1]
-              if (completeTask) {
-                canvas.addMarker(n.id, completeTask.completed ? 'highlight' : 'highlight-todo');  
-                n.outgoing.forEach(nn => {
-                  let targetTask = this.taskList.find(m => m.key === nn.targetRef.id)
-                  if (targetTask) {
-                    canvas.addMarker(nn.id, targetTask.completed ? 'highlight' : 'highlight-todo');  
-                  } else if (nn.targetRef.$type === 'bpmn:ExclusiveGateway') {
-                    // canvas.addMarker(nn.id, 'highlight');
-                    canvas.addMarker(nn.id, completeTask.completed ? 'highlight' : 'highlight-todo');  
-                    canvas.addMarker(nn.targetRef.id, completeTask.completed ? 'highlight' : 'highlight-todo');  
-                  } else if (nn.targetRef.$type === 'bpmn:EndEvent') {
-                    if (!todoTask && endTask.key === n.id) {
-                      canvas.addMarker(nn.id, 'highlight');  
-                      canvas.addMarker(nn.targetRef.id, 'highlight');  
-                    }
-                    if (!completeTask.completed) {
-                      canvas.addMarker(nn.id, 'highlight-todo');  
-                      canvas.addMarker(nn.targetRef.id, 'highlight-todo');  
-                    }
-                  }
-                });
-              }
-          } else if (n.$type === 'bpmn:ExclusiveGateway') {
-            n.outgoing.forEach(nn => {
-              let targetTask = this.taskList.find(m => m.key === nn.targetRef.id)
-              if (targetTask) {
-                canvas.addMarker(nn.id, targetTask.completed ? 'highlight' : 'highlight-todo');
-              }
-            })
-          }
-          if (n.$type === 'bpmn:StartEvent') {
-            n.outgoing.forEach(nn => {
-              let completeTask = this.taskList.find(m => m.key === nn.targetRef.id)
-              if (completeTask) {
-                canvas.addMarker(nn.id, 'highlight');
-                canvas.addMarker(n.id, 'highlight');
-                return
-              }
-            });
-          }
-		  
-        })
-      }
-    } catch (err) {
-      console.log('error rendering', err);
-    }
+    // console.log('bpmnViewer', this.bpmnViewer)
+	this.renderBpmnView();
   },
   methods: {
+	async renderBpmnView() {
+	    try {
+		  // let xmlData = this.xmlData.replace('xmlns:camunda', 'xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda')
+		  // console.log('xmlData', xmlData)
+		  const { warning } = await this.bpmnViewer.importXML(this.xmlData);
+		  // console.log('rendered', warning);
+		  let canvas = this.bpmnViewer.get('canvas');
+		  // canvas.zoom('fit-viewport')
+		  if (this.taskList && this.taskList.length > 0) {
+			// let overlays = this.bpmnViewer.get('overlays');
+			// let overlayHtml = document.createElement('div');
+			// overlays.add('StartEvent_1', {
+			//   position: {
+			//     top: 0,
+			//     right: 0,
+			//   },
+			//   html: overlayHtml
+			// });
+			// 判断开始节点或结束节点完成
+			// const modeling = this.bpmnViewer.get('modeling')
+			// modeling.setColor({ fill: 'red', stroke: 'red' })
+			// console.log('this.bpmnViewer', this.bpmnViewer)
+			// console.log('canvas', canvas)
+			// this.bpmnViewer.getDefinitions().$attrs['xmlns:bioc'] = 'http://bpmn.io/schema/bpmn/biocolor/1.0'
+			// this.bpmnViewer.getDefinitions().rootElements[0].di.planeElement.forEach(n => {
+			//   // console.log(n)
+			//   n['bioc:stroke'] = 'red'
+			//   n['bioc:fill'] = "#E1BEE7"
+			//   // console.log(n)
+			// })
+			// this.bpmnViewer.getDefinitions().diagrams[0].plane.planeElement.forEach(n => {
+			//   // console.log(n)
+			//   n['bioc:stroke'] = 'red'
+			//   n['bioc:fill'] = "#E1BEE7"
+			//   n.di = {'bioc:stroke': 'red'}
+			//   // console.log(n)
+			// })
+			// console.log('bpmnViewer2', this.bpmnViewer.getDefinitions())
+			// const result = await this.bpmnViewer._moddle.toXML(this.bpmnViewer.getDefinitions(), {});
+			// console.log(result)
+			// result.xml = result.xml.replace(/\n/g, '');
+			// result.xml = result.xml.replace('xmlns:camunda', 'xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda')
+			// result.xml = result.xml.replace('bpmnElement="EndEvent_1xgys24"', 'bpmnElement="EndEvent_1xgys24" bioc:stroke="#3399aa"')
+			// let bpmnViewer1 = new BpmnViewer({
+			//   container: this.$refs["canvas1"],
+			//   bpmnRenderer: {
+			//       // defaultFillColor: "rgba(30,30,30,1)",
+			//       // defaultStrokeColor: "red"
+			//   }
+			// });
+			// const { warning } = await bpmnViewer1.importXML(result.xml);
+			// console.log('this.bpmnViewer', bpmnViewer1)
+			const overlays = this.bpmnViewer.get('overlays');
+			let overlayHtml = document.createElement('div');
+			overlayHtml.classList.add('node-statistic');
+			//overlayHtml.style.width = '24px';
+			//overlayHtml.style.height = '24px';
+			overlayHtml.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24"><g fill="none" fill-rule="evenodd">'+
+		'<circle cx="12" cy="12" r="12" fill="#10D070"></circle>'+
+		  '<path fill="#FFF" d="M12,19 C8.13400675,19 5,15.8659932 5,12 C5,8.13400675 8.13400675,5 12,5 C15.8659932,5 19,8.13400675 19,12 C19,15.8659932 15.8659932,19 12,19 Z M12,17 C14.7614237,17 17,14.7614237 17,12 C17,9.23857625 14.7614237,7 12,7 C9.23857625,7 7,9.23857625 7,12 C7,14.7614237 9.23857625,17 12,17 Z M12,16 C9.790861,16 8,14.209139 8,12 C8,9.790861 9.790861,8 12,8 C14.209139,8 16,9.790861 16,12 C16,14.209139 14.209139,16 12,16 Z"></path>'+
+		  '</g></svg><span style="box-sizing: border-box;padding: 0px 11px 0px 0px;width:24px">2</span>';
+
+			overlays.add('UserTask_06zjapk', {
+				position: {bottom: 12, left: 0},
+				html: overlayHtml
+			});
+			console.log('this.bpmnViewer overlays', overlays)
+			this.bpmnViewer.getDefinitions().rootElements[0].flowElements.forEach(n => {
+			canvas.addMarker(n.id, 'op-selectable');
+			
+			  if (n.$type === 'bpmn:UserTask') {
+				  let completeTask = this.taskList.find(m => m.key === n.id)
+				  let todoTask = this.taskList.find(m => !m.completed)
+				  let endTask = this.taskList[this.taskList.length - 1]
+				  if (completeTask) {
+					canvas.addMarker(n.id, completeTask.completed ? 'highlight' : 'highlight-todo');  
+					n.outgoing.forEach(nn => {
+					  let targetTask = this.taskList.find(m => m.key === nn.targetRef.id)
+					  if (targetTask) {
+						canvas.addMarker(nn.id, targetTask.completed ? 'highlight' : 'highlight-todo');  
+					  } else if (nn.targetRef.$type === 'bpmn:ExclusiveGateway') {
+						// canvas.addMarker(nn.id, 'highlight');
+						canvas.addMarker(nn.id, completeTask.completed ? 'highlight' : 'highlight-todo');  
+						canvas.addMarker(nn.targetRef.id, completeTask.completed ? 'highlight' : 'highlight-todo');  
+					  } else if (nn.targetRef.$type === 'bpmn:EndEvent') {
+						if (!todoTask && endTask.key === n.id) {
+						  canvas.addMarker(nn.id, 'highlight');  
+						  canvas.addMarker(nn.targetRef.id, 'highlight');  
+						}
+						if (!completeTask.completed) {
+						  canvas.addMarker(nn.id, 'highlight-todo');  
+						  canvas.addMarker(nn.targetRef.id, 'highlight-todo');  
+						}
+					  }
+					});
+				  }
+			  } else if (n.$type === 'bpmn:ExclusiveGateway') {
+				n.outgoing.forEach(nn => {
+				  let targetTask = this.taskList.find(m => m.key === nn.targetRef.id)
+				  if (targetTask) {
+					canvas.addMarker(nn.id, targetTask.completed ? 'highlight' : 'highlight-todo');
+				  }
+				})
+			  }
+			  if (n.$type === 'bpmn:StartEvent') {
+				n.outgoing.forEach(nn => {
+				  let completeTask = this.taskList.find(m => m.key === nn.targetRef.id)
+				  if (completeTask) {
+					canvas.addMarker(nn.id, 'highlight');
+					canvas.addMarker(n.id, 'highlight');
+					return
+				  }
+				});
+			  }
+			  
+			})
+		  }
+		} catch (err) {
+		  console.log('error rendering', err);
+		}
+	}
   }
 };
 </script>
