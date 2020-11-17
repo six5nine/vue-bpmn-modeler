@@ -1,7 +1,9 @@
 <template>
   <div ref="container" class="containers">
     <div ref="canvas" class="canvas"></div>
-    <div id="properties-panel-parent" class="properties-panel-parent"></div>
+    <div v-show="!collapsed" id="properties-panel-parent" class="properties-panel-parent"></div>
+    <button class="amasdk-workbench-layout_button" :class="{collapsed}" @click="collapsed=!collapsed"
+      style="padding: 1px 12px!important;touch-action: none; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"> 属性设置 </button>
   </div>
 </template>
 
@@ -25,6 +27,7 @@ export default {
   },
   data() {
     return {
+      collapsed:true,
       modeler: {},
       xmlData: "",
       svgImage: "",
@@ -144,6 +147,13 @@ export default {
           try {
             const result = await this.modeler.importXML(xml);
             console.log('rendered');
+            let modelerCanvas = this.modeler.get("canvas");
+            let rootElement = modelerCanvas.getRootElement();
+            
+            rootElement.children.forEach(n => {
+              console.log('rendered nnnnn', n);
+              modelerCanvas.addMarker(n.id, 'op-selectable');
+            });
             resolve()
           } catch (err) {
             reject(err);
@@ -173,6 +183,7 @@ export default {
                   name: '结束',
                 });
               }
+              
             })
             resolve();
           });
@@ -213,6 +224,7 @@ export default {
   // position: relative;
   // width: 100%;
   // height: 100%;
+
 }
 .canvas {
   // position: absolute;
@@ -231,7 +243,7 @@ export default {
   bottom: 0;
   right: 0;
   // width: 20%;
-  width: 260px;
+  width: 305px;
   z-index: 10;
   border-left: 1px solid #ccc;
   overflow: auto;
@@ -264,4 +276,41 @@ export default {
     width: calc(50% - 12px);
   }
 }
+.amasdk-workbench-layout_button {
+    -webkit-transform: rotate(90deg) translateX(-50%) translateY(-100%);
+    transform: rotate(90deg) translateX(-55.45%) translateY(-120%);
+    top: 50%;
+    touch-action: none;
+    position: absolute;
+    right: 300px;
+    z-index: 10;
+    visibility: visible!important;
+    &.collapsed {
+      right: 0;   
+    }
+}
+  .button {
+    appearance: button;
+    -webkit-writing-mode: horizontal-tb !important;
+    text-rendering: auto;
+    color: -internal-light-dark(buttontext, rgb(170, 170, 170));
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: center;
+    align-items: flex-start;
+    cursor: default;
+    background-color: -internal-light-dark(rgb(239, 239, 239), rgb(74, 74, 74));
+    box-sizing: border-box;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+    padding: 1px 16px!important;
+    border-width: 2px;
+    border-style: outset;
+    border-color: -internal-light-dark(rgb(118, 118, 118), rgb(195, 195, 195));
+    border-image: initial;
+  }
 </style>
