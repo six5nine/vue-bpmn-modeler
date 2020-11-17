@@ -21,8 +21,12 @@ export default {
   },
   data() {
     return {
-      taskList: [],
-	  bpmnViewer: {},
+		scale: 1,
+        initialScale: 1,
+        minimumScale: 0.2,
+        scaleStep: 0.1,
+        taskList: [],
+	    bpmnViewer: {},
     };
   },
    watch: {
@@ -46,6 +50,19 @@ export default {
 	this.renderBpmnView();
   },
   methods: {
+    handleZoomIn () {
+      this.scale = this.scale + this.scaleStep
+	  this.bpmnViewer.get('canvas').zoom(this.scale)
+    },
+    handleZoomOut () {
+      this.scale = Math.max(this.minimumScale, this.scale -= this.scaleStep)
+	  this.bpmnViewer.get('canvas').zoom(this.scale)
+    },
+    handleZoomReset () {
+      this.scale = this.initialScale
+      this.bpmnViewer.get('canvas').zoom(this.scale)
+    }
+	,
 	renderOverlays() {
 		const overlays = this.bpmnViewer.get('overlays');
 			let overlayHtml = document.createElement('div');
