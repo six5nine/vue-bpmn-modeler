@@ -46,6 +46,23 @@ export default {
 	this.renderBpmnView();
   },
   methods: {
+	renderOverlays() {
+		const overlays = this.bpmnViewer.get('overlays');
+			let overlayHtml = document.createElement('div');
+			overlayHtml.classList.add('node-statistic');
+			//overlayHtml.style.width = '24px';
+			//overlayHtml.style.height = '24px';
+			overlayHtml.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24"><g fill="none" fill-rule="evenodd">'+
+				'<circle cx="12" cy="12" r="12" fill="#10D070"></circle>'+
+				'<path fill="#FFF" d="M12,19 C8.13400675,19 5,15.8659932 5,12 C5,8.13400675 8.13400675,5 12,5 C15.8659932,5 19,8.13400675 19,12 C19,15.8659932 15.8659932,19 12,19 Z M12,17 C14.7614237,17 17,14.7614237 17,12 C17,9.23857625 14.7614237,7 12,7 C9.23857625,7 7,9.23857625 7,12 C7,14.7614237 9.23857625,17 12,17 Z M12,16 C9.790861,16 8,14.209139 8,12 C8,9.790861 9.790861,8 12,8 C14.209139,8 16,9.790861 16,12 C16,14.209139 14.209139,16 12,16 Z"></path>'+
+				'</g></svg><span style="box-sizing: border-box;padding: 0px 11px 0px 0px;width:24px">2</span>';
+
+			overlays.add('usertask1', {
+				position: {bottom: 12, left: 0},
+				html: overlayHtml
+			});
+			console.log('this.bpmnViewer overlays', overlays)
+	},
 	async renderBpmnView() {
 	    try {
 		  // let xmlData = this.xmlData.replace('xmlns:camunda', 'xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda')
@@ -53,6 +70,12 @@ export default {
 		  const { warning } = await this.bpmnViewer.importXML(this.xmlData);
 		  // console.log('rendered', warning);
 		  let canvas = this.bpmnViewer.get('canvas');
+		  this.bpmnViewer.getDefinitions().rootElements[0].flowElements.forEach(n => {
+			canvas.addMarker(n.id, 'op-selectable');
+			
+			}
+		  );
+		  this.renderOverlays();
 		  // canvas.zoom('fit-viewport')
 		  if (this.taskList && this.taskList.length > 0) {
 			// let overlays = this.bpmnViewer.get('overlays');
@@ -98,24 +121,9 @@ export default {
 			// });
 			// const { warning } = await bpmnViewer1.importXML(result.xml);
 			// console.log('this.bpmnViewer', bpmnViewer1)
-			const overlays = this.bpmnViewer.get('overlays');
-			let overlayHtml = document.createElement('div');
-			overlayHtml.classList.add('node-statistic');
-			//overlayHtml.style.width = '24px';
-			//overlayHtml.style.height = '24px';
-			overlayHtml.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24"><g fill="none" fill-rule="evenodd">'+
-		'<circle cx="12" cy="12" r="12" fill="#10D070"></circle>'+
-		  '<path fill="#FFF" d="M12,19 C8.13400675,19 5,15.8659932 5,12 C5,8.13400675 8.13400675,5 12,5 C15.8659932,5 19,8.13400675 19,12 C19,15.8659932 15.8659932,19 12,19 Z M12,17 C14.7614237,17 17,14.7614237 17,12 C17,9.23857625 14.7614237,7 12,7 C9.23857625,7 7,9.23857625 7,12 C7,14.7614237 9.23857625,17 12,17 Z M12,16 C9.790861,16 8,14.209139 8,12 C8,9.790861 9.790861,8 12,8 C14.209139,8 16,9.790861 16,12 C16,14.209139 14.209139,16 12,16 Z"></path>'+
-		  '</g></svg><span style="box-sizing: border-box;padding: 0px 11px 0px 0px;width:24px">2</span>';
-
-			overlays.add('UserTask_06zjapk', {
-				position: {bottom: 12, left: 0},
-				html: overlayHtml
-			});
-			console.log('this.bpmnViewer overlays', overlays)
-			this.bpmnViewer.getDefinitions().rootElements[0].flowElements.forEach(n => {
-			canvas.addMarker(n.id, 'op-selectable');
 			
+			this.bpmnViewer.getDefinitions().rootElements[0].flowElements.forEach(n => {
+
 			  if (n.$type === 'bpmn:UserTask') {
 				  let completeTask = this.taskList.find(m => m.key === n.id)
 				  let todoTask = this.taskList.find(m => !m.completed)
@@ -166,6 +174,7 @@ export default {
 		} catch (err) {
 		  console.log('error rendering', err);
 		}
+		
 	}
   }
 };
