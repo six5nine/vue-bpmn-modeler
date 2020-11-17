@@ -27,7 +27,7 @@ export default {
   },
    watch: {
     xmlData(val) {
-      this.openDiagram(val)
+      this.renderBpmnView()
     }
   },
   mounted() {
