@@ -54,22 +54,25 @@ export default {
 		const overlays = this.bpmnViewer.get('overlays');
 		if (newSelected) {
 			let overlayHtml = document.createElement('div');
-			overlayHtml.innerHTML = '\
-				<div class="node-popup">\
-					<dl class="node-info">\
-						<dt class="node-info__title">activityInstanceId:</dt>\
-						<dd class="node-info__data">2251799813685357</dd>\
-						<dt class="node-info__title">startDate:</dt>\
-						<dd class="node-info__data">2020-11-18 11:52:52</dd>\
-						<dt class="node-info__title">endDate:</dt>\
-						<dd class="node-info__data">2020-11-18 11:52:55</dd>\
-					</dl>\
-					<button title="Show more metadata" data-test="more-metadata" class="sc-gJWqzi irpHXy">More...</button>\
-				</div>\
-				';
+			let popHeight = 104;
+			overlayHtml.classList.add('pop-wrapper');
+			overlayHtml.innerHTML = `
+				<div class="pointer" style="top: 44%; transform: rotateZ(90deg); left: -7px;"></div>
+				<div class="node-popup">
+					<dl class="node-info">
+						<dt class="node-info__title">activityInstanceId:</dt>
+						<dd class="node-info__data">2251799813685357</dd>
+						<dt class="node-info__title">startDate:</dt>
+						<dd class="node-info__data">2020-11-18 11:52:52</dd>
+						<dt class="node-info__title">endDate:</dt>
+						<dd class="node-info__data">2020-11-18 11:52:55</dd>
+					</dl>
+					<button title="Show more metadata" data-test="more-metadata" class="sc-gJWqzi irpHXy">More...</button>
+				</div>
+				`;
 			
 			newSelected.popId = overlays.add(newSelected.id, {
-				position: {top: -52+newSelected.height/2, left: newSelected.width+15},
+				position: {top: -popHeight/2+newSelected.height/2, left: newSelected.width+15},
 				html: overlayHtml
 			});
 		} 
@@ -86,6 +89,18 @@ export default {
 	this.renderBpmnView();
   },
   methods: {
+	custom_popup_html(task) {
+		const endDate = dateUtils.format(task._end, 'MM 月 D 日');
+		const diff = dateUtils.diff(task._end, task._start) + 1;
+		return `
+				<div class="details-container text-left">
+				<h2 class="mb-2 text-sm  whitespace-normal">${task.name}</h2>
+				<p class="mb-2 text-gray-700">持续天数： ${diff}</p>
+				<p class="mb-2 text-gray-700">截止时间： ${endDate}</p>
+				<p class="mb-0 text-gray-700">当前进度： ${task.progress}% </p>
+				</div>
+				`;
+	},
     handleZoomIn () {
       this.scale = this.scale + this.scaleStep
 	  this.bpmnViewer.get('canvas').zoom(this.scale)
@@ -312,11 +327,26 @@ export default {
   width: 100px;
   top: -20px !important;
 }
+.pop-wrapper {
+	box-shadow: rgba(0, 0, 0, 0.133) 0px 6.4px 14.4px 0px, rgba(0, 0, 0, 0.11) 0px 1.2px 3.6px 0px;
+	.pointer {
+		position: absolute;
+		background-color: #ffffff;
+		-webkit-box-shadow: inherit;
+		box-shadow: inherit;
+		-webkit-box-sizing: border-box;
+		box-sizing: border-box;
+		-webkit-transform: rotate(45deg) !important;
+		transform: rotate(45deg) !important;
+		height: 12px;
+		width: 12px;
+		border: inherit;
+	}
+}
 .node-popup {
-    background-color: rgb(247, 248, 250);
-    color: rgb(98, 98, 110);
+	background-color: #ffffff;
+    color: #4a5568;;
     font-size: 12px;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 2px 0px;
     border-width: 1px;
     border-style: solid;
     border-color: rgb(216, 220, 227);
@@ -343,23 +373,8 @@ export default {
 		line-height: 18px;
 		margin: 0px;
 	}
+
 	
 }
-.node-popup::before, .node-popup::after {
-    position: absolute;
-    content: "";
-    pointer-events: none;
-    color: transparent;
-    right: 100%;
-    border-style: solid;
-    border-width: 9px;
-}
-.node-popup::before {
-    border-right-color: rgb(216, 220, 227);
-    top: calc(50% - 9px);
-}
-.node-popup::after {
-    border-right-color: rgb(247, 248, 250);
-    top: calc(50% - 8px);
-}
+
 </style>
